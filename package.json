@@ -1,0 +1,17 @@
+{
+  "name": "financas-pro",
+  "version": "3.0.0",
+  "description": "Dashboard financeiro completo para investidores brasileiros",
+  "type": "module",
+  "scripts": {
+    "start": "npx serve .",
+    "dev": "npx live-server --port=3000 --open=/index.html ."
+  },
+  "keywords": ["finanças", "investimentos", "dashboard", "bolsa", "brasil"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "serve": "^14.2.0",
+    "live-server": "^1.2.2"
+  }
+}

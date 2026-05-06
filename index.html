@@ -1,0 +1,1492 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Finanças Pro v3</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./src/styles/theme.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <style>
+    /* ── App Shell ─────────────────────────────────────────── */
+    #app { display: flex; height: 100vh; overflow: hidden; }
+
+    /* ── Sidebar ───────────────────────────────────────────── */
+    #sidebar {
+      width: var(--sidebar-w); flex-shrink: 0;
+      background: var(--bg-sidebar);
+      border-right: 1px solid var(--border-card);
+      display: flex; flex-direction: column;
+      overflow-y: auto; overflow-x: hidden;
+      transition: width var(--transition);
+      z-index: 100;
+    }
+    .sidebar-logo {
+      display: flex; align-items: center; gap: var(--space-3);
+      padding: var(--space-5) var(--space-5);
+      border-bottom: 1px solid var(--border-card);
+      flex-shrink: 0;
+    }
+    .logo-icon {
+      width: 34px; height: 34px; border-radius: var(--radius-md);
+      background: var(--brand-gradient);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; flex-shrink: 0;
+    }
+    .logo-text { font-size: var(--text-sm); font-weight: 700; color: var(--text-primary); line-height: 1.2; }
+    .logo-version { font-size: var(--text-xs); color: var(--text-muted); }
+
+    .sidebar-nav { padding: var(--space-4) var(--space-3); flex: 1; }
+    .nav-group { margin-bottom: var(--space-6); }
+    .nav-label {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.1em; color: var(--text-muted);
+      padding: 0 var(--space-3); margin-bottom: var(--space-2);
+    }
+    .nav-link {
+      display: flex; align-items: center; gap: var(--space-3);
+      padding: var(--space-2) var(--space-3); border-radius: var(--radius-md);
+      font-size: var(--text-sm); font-weight: 500; color: var(--text-secondary);
+      transition: all var(--transition); cursor: pointer; margin-bottom: 2px;
+      white-space: nowrap;
+    }
+    .nav-link:hover { background: var(--bg-hover); color: var(--text-primary); }
+    .nav-link.active { background: var(--color-blue-dim); color: var(--brand-primary); }
+    .nav-link svg { flex-shrink: 0; }
+    .nav-badge {
+      margin-left: auto; font-size: 10px; font-weight: 600;
+      background: var(--color-red-dim); color: var(--color-red);
+      padding: 1px 6px; border-radius: var(--radius-full);
+    }
+
+    .sidebar-footer {
+      padding: var(--space-4) var(--space-3);
+      border-top: 1px solid var(--border-card);
+      flex-shrink: 0;
+    }
+    .user-card {
+      display: flex; align-items: center; gap: var(--space-3);
+      padding: var(--space-2) var(--space-3); border-radius: var(--radius-md);
+      cursor: pointer; transition: background var(--transition);
+    }
+    .user-card:hover { background: var(--bg-hover); }
+    .user-avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--brand-gradient);
+      display: flex; align-items: center; justify-content: center;
+      font-size: var(--text-xs); font-weight: 700; color: #fff; flex-shrink: 0;
+    }
+    .user-name { font-size: var(--text-sm); font-weight: 500; color: var(--text-primary); }
+    .user-plan { font-size: var(--text-xs); color: var(--text-muted); }
+
+    /* ── Main ──────────────────────────────────────────────── */
+    #main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+
+    /* ── Top Bar ───────────────────────────────────────────── */
+    #topbar {
+      height: var(--header-h); flex-shrink: 0;
+      background: var(--bg-sidebar);
+      border-bottom: 1px solid var(--border-card);
+      display: flex; align-items: center; gap: var(--space-4);
+      padding: 0 var(--space-6); z-index: 50;
+    }
+    #topbar .page-title { font-size: var(--text-lg); font-weight: 600; color: var(--text-primary); }
+    .topbar-search {
+      flex: 1; max-width: 320px;
+      position: relative; margin-left: var(--space-4);
+    }
+    .topbar-search svg {
+      position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+      color: var(--text-muted);
+    }
+    .topbar-search input {
+      width: 100%; padding: var(--space-2) var(--space-3) var(--space-2) 34px;
+      background: var(--bg-input); border: 1px solid var(--border-default);
+      border-radius: var(--radius-md); font-size: var(--text-sm); color: var(--text-primary);
+      outline: none; transition: border-color var(--transition);
+    }
+    .topbar-search input:focus { border-color: var(--border-focus); }
+    .topbar-search input::placeholder { color: var(--text-muted); }
+    .topbar-actions { display: flex; align-items: center; gap: var(--space-2); margin-left: auto; }
+    .topbar-time { font-size: var(--text-xs); color: var(--text-muted); font-family: var(--font-mono); }
+
+    /* ── Content Area ──────────────────────────────────────── */
+    #content { flex: 1; overflow-y: auto; overflow-x: hidden; padding: var(--space-6); }
+
+    /* ── Pages ─────────────────────────────────────────────── */
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* ── KPI Grid ──────────────────────────────────────────── */
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: var(--space-4); margin-bottom: var(--space-6); }
+
+    /* ── Charts Grid ───────────────────────────────────────── */
+    .charts-grid { display: grid; grid-template-columns: 2fr 1fr; gap: var(--space-5); margin-bottom: var(--space-6); }
+    @media (max-width: 900px) { .charts-grid { grid-template-columns: 1fr; } }
+
+    .chart-card { background: var(--bg-card); border: 1px solid var(--border-card); border-radius: var(--radius-lg); padding: var(--space-5); }
+    .chart-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-4); }
+    .chart-title { font-size: var(--text-sm); font-weight: 600; color: var(--text-primary); }
+    .chart-wrap { position: relative; }
+
+    /* ── Market Ticker Bar ─────────────────────────────────── */
+    #market-ticker {
+      background: var(--bg-card-alt); border-bottom: 1px solid var(--border-card);
+      padding: var(--space-2) var(--space-6); overflow: hidden;
+      display: flex; align-items: center; gap: var(--space-6);
+    }
+    .ticker-item { display: flex; align-items: center; gap: var(--space-2); flex-shrink: 0; }
+    .ticker-sym { font-size: var(--text-xs); font-weight: 700; font-family: var(--font-mono); color: var(--text-secondary); }
+    .ticker-price { font-size: var(--text-xs); font-family: var(--font-mono); color: var(--text-primary); }
+    .ticker-chg { font-size: var(--text-xs); font-family: var(--font-mono); font-weight: 600; }
+    .ticker-sep { width: 1px; height: 16px; background: var(--border-default); flex-shrink: 0; }
+
+    /* ── Pair card (cambio) ────────────────────────────────── */
+    .pair-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap: var(--space-4); }
+    .pair-card {
+      background: var(--bg-card); border: 1px solid var(--border-card);
+      border-radius: var(--radius-lg); padding: var(--space-5);
+      transition: transform var(--transition), border-color var(--transition);
+    }
+    .pair-card:hover { transform: translateY(-2px); border-color: var(--border-default); }
+    .pair-flag { font-size: 1.5rem; margin-bottom: var(--space-2); }
+    .pair-name { font-size: var(--text-sm); font-weight: 600; color: var(--text-primary); }
+    .pair-code { font-size: var(--text-xs); color: var(--text-muted); }
+    .pair-rate { font-size: var(--text-2xl); font-weight: 700; font-family: var(--font-mono); color: var(--text-primary); margin: var(--space-2) 0; }
+    .pair-meta { display: flex; align-items: center; justify-content: space-between; }
+
+    /* ── Indicator card ────────────────────────────────────── */
+    .ind-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap: var(--space-4); margin-bottom: var(--space-6); }
+    .ind-card {
+      background: var(--bg-card); border: 1px solid var(--border-card);
+      border-radius: var(--radius-lg); padding: var(--space-5);
+      display: flex; flex-direction: column; gap: var(--space-3);
+    }
+    .ind-icon {
+      width: 36px; height: 36px; border-radius: var(--radius-md);
+      display: flex; align-items: center; justify-content: center;
+      font-size: var(--text-base); flex-shrink: 0;
+    }
+    .ind-name { font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); font-weight: 600; }
+    .ind-value { font-size: var(--text-2xl); font-weight: 700; font-family: var(--font-mono); }
+    .ind-period { font-size: var(--text-xs); color: var(--text-muted); }
+
+    /* ── Alloc legend ──────────────────────────────────────── */
+    .alloc-legend { display: flex; flex-direction: column; gap: var(--space-3); }
+    .alloc-row { display: flex; align-items: center; gap: var(--space-3); }
+    .alloc-label { font-size: var(--text-xs); color: var(--text-secondary); flex: 1; }
+    .alloc-pct { font-size: var(--text-xs); font-family: var(--font-mono); font-weight: 600; color: var(--text-primary); min-width: 40px; text-align: right; }
+
+    /* ── Loading overlay ───────────────────────────────────── */
+    .loading-row td { text-align: center; padding: var(--space-8); color: var(--text-muted); }
+    .empty-state {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: var(--space-12); color: var(--text-muted); gap: var(--space-4); text-align: center;
+    }
+
+    /* ── Refresh indicator ─────────────────────────────────── */
+    #refresh-indicator {
+      position: fixed; bottom: var(--space-6); right: var(--space-6);
+      background: var(--bg-card); border: 1px solid var(--border-default);
+      border-radius: var(--radius-full); padding: var(--space-2) var(--space-4);
+      display: flex; align-items: center; gap: var(--space-2);
+      font-size: var(--text-xs); color: var(--text-secondary);
+      box-shadow: var(--shadow-md); z-index: 200; opacity: 0;
+      transition: opacity 0.3s;
+    }
+    #refresh-indicator.show { opacity: 1; }
+
+    /* ── Mobile toggle ─────────────────────────────────────── */
+    #mobile-toggle {
+      display: none; padding: var(--space-2);
+      border-radius: var(--radius-md); color: var(--text-secondary);
+      background: transparent; cursor: pointer; flex-shrink: 0;
+    }
+    @media (max-width: 768px) {
+      #mobile-toggle { display: flex; align-items: center; justify-content: center; }
+      #sidebar { position: fixed; left: 0; top: 0; bottom: 0; transform: translateX(-100%); }
+      #sidebar.open { transform: translateX(0); }
+    }
+
+    /* ── Sub-tab nav for Carteira ──────────────────────────── */
+    .subtabs { display: flex; gap: var(--space-2); margin-bottom: var(--space-5); border-bottom: 1px solid var(--border-card); }
+    .subtab {
+      padding: var(--space-2) var(--space-4); font-size: var(--text-sm); font-weight: 500;
+      color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent;
+      margin-bottom: -1px; transition: all var(--transition);
+    }
+    .subtab:hover { color: var(--text-secondary); }
+    .subtab.active { color: var(--brand-primary); border-bottom-color: var(--brand-primary); }
+
+    .subpage { display: none; }
+    .subpage.active { display: block; }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ═══════════════ SIDEBAR ═══════════════ -->
+  <aside id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">📈</div>
+      <div>
+        <div class="logo-text">Finanças Pro</div>
+        <div class="logo-version">v3.0</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-group">
+        <div class="nav-label">Principal</div>
+        <a class="nav-link active" data-page="dashboard">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          Dashboard
+        </a>
+        <a class="nav-link" data-page="carteira">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+          Carteira
+        </a>
+        <a class="nav-link" data-page="mercado">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          Mercado
+        </a>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-label">Dados</div>
+        <a class="nav-link" data-page="cambio">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          Câmbio
+        </a>
+        <a class="nav-link" data-page="indicadores">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+          Indicadores
+        </a>
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="user-avatar">IP</div>
+        <div>
+          <div class="user-name">Investidor Pro</div>
+          <div class="user-plan">Plano Premium</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ═══════════════ MAIN ═══════════════ -->
+  <div id="main">
+
+    <!-- Top bar -->
+    <div id="topbar">
+      <button id="mobile-toggle" onclick="toggleSidebar()">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <span class="page-title" id="topbar-title">Dashboard</span>
+
+      <div class="topbar-search">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" placeholder="Buscar ativo, índice…" id="search-input" />
+      </div>
+
+      <div class="topbar-actions">
+        <span class="topbar-time" id="clock"></span>
+        <button class="btn-icon" onclick="refreshAll()" title="Atualizar dados">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        </button>
+        <button class="btn-icon" title="Notificações">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Market ticker bar -->
+    <div id="market-ticker">
+      <div id="ticker-content" class="flex items-center gap-6">
+        <span class="ticker-item"><span class="ticker-sym">IBOV</span><span class="ticker-price" id="ibov-price">—</span><span class="ticker-chg" id="ibov-chg">—</span></span>
+        <span class="ticker-sep"></span>
+        <span class="ticker-item"><span class="ticker-sym">USD</span><span class="ticker-price" id="usd-price">—</span><span class="ticker-chg" id="usd-chg">—</span></span>
+        <span class="ticker-sep"></span>
+        <span class="ticker-item"><span class="ticker-sym">EUR</span><span class="ticker-price" id="eur-price">—</span></span>
+        <span class="ticker-sep"></span>
+        <span class="ticker-item"><span class="ticker-sym">BTC</span><span class="ticker-price" id="btc-price">—</span><span class="ticker-chg" id="btc-chg">—</span></span>
+        <span class="ticker-sep"></span>
+        <span class="ticker-item"><span class="ticker-sym">SELIC</span><span class="ticker-price" id="selic-ticker">—% a.a.</span></span>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div id="content">
+
+      <!-- ══════════ PAGE: DASHBOARD ══════════ -->
+      <div class="page active" id="page-dashboard">
+        <!-- KPI row -->
+        <div class="kpi-grid" id="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-label">Patrimônio Total</div>
+            <div class="kpi-value" id="kpi-total">Carregando…</div>
+            <div class="kpi-sub flex items-center gap-2">
+              <span class="kpi-badge neutral" id="kpi-pl-badge">—</span>
+              <span id="kpi-pl-abs" class="text-xs text-muted">desde o início</span>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Ações</div>
+            <div class="kpi-value" id="kpi-acoes">—</div>
+            <div class="kpi-sub flex items-center gap-2">
+              <span class="kpi-badge neutral" id="kpi-acoes-badge">—</span>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">FIIs</div>
+            <div class="kpi-value" id="kpi-fiis">—</div>
+            <div class="kpi-sub flex items-center gap-2">
+              <span class="kpi-badge neutral" id="kpi-fiis-badge">—</span>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Renda Fixa</div>
+            <div class="kpi-value" id="kpi-rf">—</div>
+            <div class="kpi-sub text-muted text-xs" id="kpi-rf-sub">—</div>
+          </div>
+        </div>
+
+        <!-- Charts row -->
+        <div class="charts-grid">
+          <!-- Performance chart -->
+          <div class="chart-card">
+            <div class="chart-header">
+              <div>
+                <div class="chart-title">Evolução do Patrimônio</div>
+                <div class="text-xs text-muted">Estimativa — últimos 12 meses</div>
+              </div>
+              <div class="flex gap-2">
+                <button class="btn btn-ghost btn-sm perf-range active" data-range="6m">6M</button>
+                <button class="btn btn-ghost btn-sm perf-range" data-range="1y">1A</button>
+              </div>
+            </div>
+            <div class="chart-wrap" style="height:220px">
+              <canvas id="chart-perf"></canvas>
+            </div>
+          </div>
+
+          <!-- Allocation donut -->
+          <div class="chart-card">
+            <div class="chart-header">
+              <div class="chart-title">Alocação</div>
+            </div>
+            <div class="chart-wrap" style="height:160px">
+              <canvas id="chart-alloc"></canvas>
+            </div>
+            <div class="alloc-legend mt-4" id="alloc-legend"></div>
+          </div>
+        </div>
+
+        <!-- Bottom row: top positions + sector allocation -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-5)">
+          <div class="card">
+            <div class="section-header">
+              <div><div class="section-title">Maiores Posições</div></div>
+              <button class="btn btn-ghost btn-sm" onclick="navigate('carteira')">Ver todas</button>
+            </div>
+            <div class="table-wrap">
+              <table class="data-table" id="top-positions-table">
+                <thead><tr>
+                  <th>Ativo</th><th class="right">Valor</th><th class="right">P&L</th>
+                </tr></thead>
+                <tbody id="top-positions-body">
+                  <tr class="loading-row"><td colspan="3"><div class="flex items-center justify-center gap-3"><div class="spinner"></div>Carregando…</div></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="section-header">
+              <div class="section-title">Alocação por Setor</div>
+            </div>
+            <div id="sector-list" class="flex flex-col gap-3">
+              <div class="skeleton" style="height:32px"></div>
+              <div class="skeleton" style="height:32px"></div>
+              <div class="skeleton" style="height:32px"></div>
+              <div class="skeleton" style="height:32px"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════ PAGE: CARTEIRA ══════════ -->
+      <div class="page" id="page-carteira">
+        <div class="subtabs">
+          <div class="subtab active" data-sub="acoes">Ações</div>
+          <div class="subtab" data-sub="fiis">FIIs</div>
+          <div class="subtab" data-sub="renda-fixa">Renda Fixa</div>
+          <div class="subtab" data-sub="resumo">Resumo</div>
+        </div>
+
+        <!-- Ações -->
+        <div class="subpage active" id="sub-acoes">
+          <div class="card">
+            <div class="section-header">
+              <div>
+                <div class="section-title">Ações</div>
+                <div class="section-sub" id="acoes-sub">— ativos</div>
+              </div>
+              <div class="flex gap-2 items-center">
+                <span class="kpi-badge neutral" id="acoes-total-badge">—</span>
+                <button class="btn btn-primary btn-sm">+ Adicionar</button>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table class="data-table" id="acoes-table">
+                <thead><tr>
+                  <th>Ticker</th>
+                  <th>Nome</th>
+                  <th class="right">Qtd</th>
+                  <th class="right">Preço Médio</th>
+                  <th class="right">Cotação</th>
+                  <th class="right">Valor Total</th>
+                  <th class="right">P&L R$</th>
+                  <th class="right">P&L %</th>
+                  <th>Setor</th>
+                </tr></thead>
+                <tbody id="acoes-tbody">
+                  <tr class="loading-row"><td colspan="9"><div class="flex items-center justify-center gap-3"><div class="spinner"></div>Buscando cotações…</div></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- FIIs -->
+        <div class="subpage" id="sub-fiis">
+          <div class="card">
+            <div class="section-header">
+              <div>
+                <div class="section-title">Fundos Imobiliários</div>
+                <div class="section-sub" id="fiis-sub">— ativos</div>
+              </div>
+              <div class="flex gap-2 items-center">
+                <span class="kpi-badge neutral" id="fiis-total-badge">—</span>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table class="data-table" id="fiis-table">
+                <thead><tr>
+                  <th>Ticker</th>
+                  <th>Nome</th>
+                  <th class="right">Qtd</th>
+                  <th class="right">Preço Médio</th>
+                  <th class="right">Cotação</th>
+                  <th class="right">Valor Total</th>
+                  <th class="right">P&L R$</th>
+                  <th class="right">P&L %</th>
+                  <th>Segmento</th>
+                </tr></thead>
+                <tbody id="fiis-tbody">
+                  <tr class="loading-row"><td colspan="9"><div class="flex items-center justify-center gap-3"><div class="spinner"></div>Buscando cotações…</div></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Renda Fixa -->
+        <div class="subpage" id="sub-renda-fixa">
+          <div class="card">
+            <div class="section-header">
+              <div>
+                <div class="section-title">Renda Fixa</div>
+                <div class="section-sub" id="rf-sub">— títulos</div>
+              </div>
+              <span class="kpi-badge neutral" id="rf-total-badge">—</span>
+            </div>
+            <div class="table-wrap">
+              <table class="data-table" id="rf-table">
+                <thead><tr>
+                  <th>Título</th>
+                  <th>Emissor</th>
+                  <th>Tipo</th>
+                  <th>Indexador</th>
+                  <th class="right">Taxa</th>
+                  <th class="right">Investido</th>
+                  <th class="right">Valor Atual</th>
+                  <th class="right">Rendimento</th>
+                  <th>Vencimento</th>
+                </tr></thead>
+                <tbody id="rf-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Resumo carteira -->
+        <div class="subpage" id="sub-resumo">
+          <div class="kpi-grid" id="cart-kpi-grid"></div>
+          <div class="charts-grid">
+            <div class="chart-card">
+              <div class="chart-header"><div class="chart-title">Distribuição da Carteira</div></div>
+              <div class="chart-wrap" style="height:240px"><canvas id="chart-cart-dist"></canvas></div>
+            </div>
+            <div class="chart-card">
+              <div class="chart-header"><div class="chart-title">Classes de Ativos</div></div>
+              <div class="chart-wrap" style="height:240px"><canvas id="chart-classes"></canvas></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════ PAGE: MERCADO ══════════ -->
+      <div class="page" id="page-mercado">
+        <div class="kpi-grid" style="margin-bottom:var(--space-5)">
+          <div class="kpi-card">
+            <div class="kpi-label">IBOVESPA</div>
+            <div class="kpi-value font-mono" id="ibov-val">—</div>
+            <div class="kpi-sub"><span class="kpi-badge neutral" id="ibov-badge">—</span></div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Volume Negociado</div>
+            <div class="kpi-value font-mono" id="ibov-vol">—</div>
+            <div class="kpi-sub text-xs text-muted">últimas 24h</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Variação 52 semanas</div>
+            <div class="kpi-value font-mono" id="ibov-52w">—</div>
+            <div class="kpi-sub text-xs text-muted">máx / mín</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Atualizado</div>
+            <div class="kpi-value text-xl font-mono" id="market-time">—</div>
+            <div class="kpi-sub text-xs text-muted">horário de Brasília</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-header">
+            <div><div class="section-title">Cotações da B3</div><div class="section-sub" id="market-count">— ativos monitorados</div></div>
+            <div class="flex gap-2">
+              <input type="text" class="input" placeholder="Filtrar…" id="market-filter" style="width:160px" />
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table" id="market-table">
+              <thead><tr>
+                <th>Ticker</th>
+                <th>Nome</th>
+                <th class="right">Cotação</th>
+                <th class="right">Var. Dia</th>
+                <th class="right">Abertura</th>
+                <th class="right">Mín</th>
+                <th class="right">Máx</th>
+                <th class="right">Vol.</th>
+                <th class="right">P/L</th>
+              </tr></thead>
+              <tbody id="market-tbody">
+                <tr class="loading-row"><td colspan="9"><div class="flex items-center justify-center gap-3"><div class="spinner"></div>Carregando cotações…</div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════ PAGE: CÂMBIO ══════════ -->
+      <div class="page" id="page-cambio">
+        <div style="margin-bottom:var(--space-5)">
+          <h2 style="font-size:var(--text-xl);margin-bottom:var(--space-1)">Câmbio</h2>
+          <p class="text-sm text-muted">Cotações em tempo real — fonte: AwesomeAPI</p>
+        </div>
+
+        <div class="pair-grid" id="pair-grid">
+          <!-- Skeleton -->
+          <div class="pair-card"><div class="skeleton" style="height:120px"></div></div>
+          <div class="pair-card"><div class="skeleton" style="height:120px"></div></div>
+          <div class="pair-card"><div class="skeleton" style="height:120px"></div></div>
+          <div class="pair-card"><div class="skeleton" style="height:120px"></div></div>
+          <div class="pair-card"><div class="skeleton" style="height:120px"></div></div>
+          <div class="pair-card"><div class="skeleton" style="height:120px"></div></div>
+        </div>
+
+        <div class="chart-card" style="margin-top:var(--space-6)">
+          <div class="chart-header">
+            <div class="chart-title">Histórico USD/BRL (30 dias)</div>
+          </div>
+          <div style="height:200px"><canvas id="chart-cambio"></canvas></div>
+        </div>
+      </div>
+
+      <!-- ══════════ PAGE: INDICADORES ══════════ -->
+      <div class="page" id="page-indicadores">
+        <div style="margin-bottom:var(--space-5)">
+          <h2 style="font-size:var(--text-xl);margin-bottom:var(--space-1)">Indicadores Econômicos</h2>
+          <p class="text-sm text-muted">Dados oficiais — Banco Central do Brasil (BCB/SGS)</p>
+        </div>
+
+        <div class="ind-grid" id="ind-grid">
+          <div class="ind-card"><div class="skeleton" style="height:90px"></div></div>
+          <div class="ind-card"><div class="skeleton" style="height:90px"></div></div>
+          <div class="ind-card"><div class="skeleton" style="height:90px"></div></div>
+          <div class="ind-card"><div class="skeleton" style="height:90px"></div></div>
+          <div class="ind-card"><div class="skeleton" style="height:90px"></div></div>
+          <div class="ind-card"><div class="skeleton" style="height:90px"></div></div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-header">
+            <div class="chart-title">Histórico dos Indicadores — últimos 12 meses</div>
+            <div class="flex gap-2">
+              <button class="btn btn-ghost btn-sm ind-series active" data-series="ipca">IPCA</button>
+              <button class="btn btn-ghost btn-sm ind-series" data-series="igpm">IGP-M</button>
+              <button class="btn btn-ghost btn-sm ind-series" data-series="cdi">CDI</button>
+            </div>
+          </div>
+          <div style="height:220px"><canvas id="chart-indicadores"></canvas></div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- Refresh indicator -->
+<div id="refresh-indicator">
+  <div class="spinner" style="width:14px;height:14px;border-width:2px"></div>
+  <span>Atualizando dados…</span>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     APPLICATION SCRIPT
+════════════════════════════════════════════════════════════ -->
+<script type="module">
+import {
+  fetchQuotes,
+  fetchExchangeRates,
+  fetchExchangeHistory,
+  fetchSELIC,
+  fetchIPCA,
+  fetchIGPM,
+  fetchCDI,
+  fetchPoupanca,
+  fetchINPC,
+  bcbSeriesToChart,
+} from './src/api/market.js';
+
+import {
+  acoes as ACOES,
+  fiis as FIIS,
+  rendaFixa as RENDA_FIXA,
+  SECTOR_COLORS,
+  buildSummary,
+} from './src/data/portfolio.js';
+
+// ── Globals ────────────────────────────────────────────────────
+let QUOTES = {};
+let SUMMARY = null;
+let CHARTS  = {};
+let IND_SERIES_DATA = {};
+
+// ── Formatters ─────────────────────────────────────────────────
+const BRL  = (v) => v == null || isNaN(v) ? '—' : new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(v);
+const PCT  = (v) => v == null || isNaN(v) ? '—' : `${v >= 0 ? '+' : ''}${v.toFixed(2)}%`;
+const NUM  = (v) => v == null || isNaN(v) ? '—' : new Intl.NumberFormat('pt-BR',{maximumFractionDigits:2}).format(v);
+const BIGN = (v) => { if (v == null || isNaN(v)) return '—'; if (Math.abs(v)>=1e9) return `R$ ${(v/1e9).toFixed(2)}B`; if (Math.abs(v)>=1e6) return `R$ ${(v/1e6).toFixed(2)}M`; return BRL(v); };
+const DATE = (str) => { try { return new Date(str+'T00:00:00').toLocaleDateString('pt-BR'); } catch { return str; } };
+
+function colorPct(v) {
+  if (v > 0)  return 'var(--color-green)';
+  if (v < 0)  return 'var(--color-red)';
+  return 'var(--text-muted)';
+}
+function badgeClass(v) {
+  if (v > 0)  return 'badge-green';
+  if (v < 0)  return 'badge-red';
+  return 'badge-gray';
+}
+
+// ── Clock ──────────────────────────────────────────────────────
+function updateClock() {
+  const el = document.getElementById('clock');
+  if (el) el.textContent = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ── Navigation ─────────────────────────────────────────────────
+const PAGE_TITLES = {
+  dashboard: 'Dashboard',
+  carteira:  'Carteira',
+  mercado:   'Mercado',
+  cambio:    'Câmbio',
+  indicadores: 'Indicadores',
+};
+
+window.navigate = function(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+  const el = document.getElementById(`page-${page}`);
+  if (el) el.classList.add('active');
+  const link = document.querySelector(`.nav-link[data-page="${page}"]`);
+  if (link) link.classList.add('active');
+  document.getElementById('topbar-title').textContent = PAGE_TITLES[page] || page;
+
+  // Lazy-render pages
+  if (page === 'mercado')    renderMercado();
+  if (page === 'cambio')     renderCambio();
+  if (page === 'indicadores') renderIndicadores();
+};
+
+document.querySelectorAll('.nav-link[data-page]').forEach(l => {
+  l.addEventListener('click', (e) => { e.preventDefault(); navigate(l.dataset.page); });
+});
+
+// Sub-tabs (Carteira)
+document.querySelectorAll('.subtab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('.subtab').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('.subpage').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    const sub = document.getElementById(`sub-${t.dataset.sub}`);
+    if (sub) sub.classList.add('active');
+    if (t.dataset.sub === 'resumo') renderCarteiraSummaryCharts();
+  });
+});
+
+// Mobile sidebar
+window.toggleSidebar = function() {
+  document.getElementById('sidebar').classList.toggle('open');
+};
+
+// ── Refresh indicator ──────────────────────────────────────────
+function showRefreshing() {
+  const el = document.getElementById('refresh-indicator');
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2000);
+}
+
+// ── Main data load ─────────────────────────────────────────────
+async function loadAllData() {
+  showRefreshing();
+  const allTickers = [...ACOES.map(a => a.ticker), ...FIIS.map(f => f.ticker)];
+
+  try {
+    const results = await fetchQuotes(allTickers);
+    results.forEach(q => { QUOTES[q.symbol] = q; });
+  } catch (e) {
+    console.warn('Quote fetch failed, using avg prices:', e.message);
+  }
+
+  SUMMARY = buildSummary(QUOTES);
+
+  renderDashboard();
+  renderCarteira();
+  updateTickerBar();
+}
+
+// ── Ticker bar ─────────────────────────────────────────────────
+async function updateTickerBar() {
+  // Exchange
+  try {
+    const fx = await fetchExchangeRates(['USD-BRL','EUR-BRL','BTC-BRL']);
+    const usd = fx['USDBRL'];
+    const eur = fx['EURBRL'];
+    const btc = fx['BTCBRL'];
+    if (usd) {
+      setText('usd-price', `R$ ${parseFloat(usd.bid).toFixed(2)}`);
+      const vUSD = parseFloat(usd.pctChange);
+      const elUSD = document.getElementById('usd-chg');
+      if (elUSD) { elUSD.textContent = PCT(vUSD); elUSD.style.color = colorPct(vUSD); }
+    }
+    if (eur) setText('eur-price', `R$ ${parseFloat(eur.bid).toFixed(2)}`);
+    if (btc) {
+      setText('btc-price', `R$ ${NUM(parseFloat(btc.bid))}`);
+      const vBTC = parseFloat(btc.pctChange);
+      const elBTC = document.getElementById('btc-chg');
+      if (elBTC) { elBTC.textContent = PCT(vBTC); elBTC.style.color = colorPct(vBTC); }
+    }
+  } catch(e) { console.warn('FX ticker:', e.message); }
+
+  // SELIC
+  try {
+    const selic = await fetchSELIC(1);
+    if (selic?.[0]) setText('selic-ticker', `${selic[0].valor}% a.a.`);
+  } catch(e) {}
+
+  // IBOV from quote
+  const ibov = QUOTES['^BVSP'];
+  if (ibov) {
+    setText('ibov-price', NUM(ibov.regularMarketPrice));
+    const v = ibov.regularMarketChangePercent;
+    const el = document.getElementById('ibov-chg');
+    if (el) { el.textContent = PCT(v); el.style.color = colorPct(v); }
+  }
+}
+
+// ── Dashboard ──────────────────────────────────────────────────
+function renderDashboard() {
+  if (!SUMMARY) return;
+  const t = SUMMARY.totals;
+
+  setText('kpi-total', BRL(t.total));
+  const plBadge = document.getElementById('kpi-pl-badge');
+  if (plBadge) {
+    plBadge.textContent = PCT(t.plPct);
+    plBadge.className = `kpi-badge ${t.plPct >= 0 ? 'up' : 'down'}`;
+  }
+  setText('kpi-pl-abs', `${t.plAbsolute >= 0 ? '+' : ''}${BRL(t.plAbsolute)} total`);
+
+  // Ações KPI
+  const acoesInvested = SUMMARY.acoes.reduce((s,a)=>s+a.invested,0);
+  const acoesPL = t.acoes > 0 ? (t.acoes - acoesInvested)/acoesInvested*100 : 0;
+  setText('kpi-acoes', BRL(t.acoes));
+  setKPIBadge('kpi-acoes-badge', acoesPL);
+
+  // FIIs KPI
+  const fiisInvested = SUMMARY.fiis.reduce((s,f)=>s+f.invested,0);
+  const fiisPL = t.fiis > 0 ? (t.fiis - fiisInvested)/fiisInvested*100 : 0;
+  setText('kpi-fiis', BRL(t.fiis));
+  setKPIBadge('kpi-fiis-badge', fiisPL);
+
+  // RF KPI
+  const rfInvested = RENDA_FIXA.reduce((s,r)=>s+r.invested,0);
+  const rfPL = t.rendaFixa > 0 ? (t.rendaFixa - rfInvested)/rfInvested*100 : 0;
+  setText('kpi-rf', BRL(t.rendaFixa));
+  setText('kpi-rf-sub', `${rfPL >= 0 ? '+' : ''}${rfPL.toFixed(2)}% rendimento`);
+
+  renderAllocChart();
+  renderPerfChart();
+  renderTopPositions();
+  renderSectorList();
+}
+
+function setKPIBadge(id, pct) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = PCT(pct);
+  el.className = `kpi-badge ${pct >= 0 ? 'up' : 'down'}`;
+}
+
+function setText(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = val;
+}
+
+// ── Allocation donut chart ─────────────────────────────────────
+function renderAllocChart() {
+  const ctx = document.getElementById('chart-alloc');
+  if (!ctx || !SUMMARY) return;
+  if (CHARTS.alloc) CHARTS.alloc.destroy();
+
+  const a = SUMMARY.allocation;
+  const labels = ['Ações', 'FIIs', 'Renda Fixa', 'Crypto'];
+  const data   = [a.acoes, a.fiis, a.rendaFixa, a.crypto];
+  const colors = ['#4f7ef8','#a855f7','#22c55e','#f59e0b'];
+
+  CHARTS.alloc = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels,
+      datasets: [{ data, backgroundColor: colors, borderWidth: 0, hoverOffset: 6 }]
+    },
+    options: {
+      cutout: '72%', responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: {
+        callbacks: { label: (c) => ` ${c.label}: ${c.parsed.toFixed(1)}%` }
+      }}
+    }
+  });
+
+  // Legend
+  const leg = document.getElementById('alloc-legend');
+  if (leg) {
+    leg.innerHTML = labels.map((l,i) => `
+      <div class="alloc-row">
+        <div class="dot" style="background:${colors[i]}"></div>
+        <span class="alloc-label">${l}</span>
+        <span class="alloc-pct">${data[i].toFixed(1)}%</span>
+      </div>`).join('');
+  }
+}
+
+// ── Performance chart ──────────────────────────────────────────
+function renderPerfChart(range = '1y') {
+  const ctx = document.getElementById('chart-perf');
+  if (!ctx) return;
+  if (CHARTS.perf) CHARTS.perf.destroy();
+
+  const months = range === '6m' ? 6 : 12;
+  const base = SUMMARY?.totals.total ?? 150000;
+  const labels = [];
+  const values = [];
+  const now = new Date();
+
+  // Simulate a realistic growth curve ending at current total
+  for (let i = months; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    labels.push(d.toLocaleDateString('pt-BR',{month:'short',year:'2-digit'}));
+    const t = (months - i) / months;
+    const noise = (Math.random() - 0.45) * 0.015;
+    const trend = 0.12 * t;
+    values.push(base * (0.88 + trend + noise * t));
+  }
+  values[values.length - 1] = base;
+
+  const grad = ctx.getContext('2d').createLinearGradient(0, 0, 0, 220);
+  grad.addColorStop(0, 'rgba(79,126,248,0.3)');
+  grad.addColorStop(1, 'rgba(79,126,248,0)');
+
+  CHARTS.perf = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        data: values,
+        borderColor: '#4f7ef8', backgroundColor: grad,
+        borderWidth: 2, fill: true, tension: 0.4,
+        pointRadius: 0, pointHoverRadius: 5,
+        pointHoverBackgroundColor: '#4f7ef8',
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(20,25,41,0.95)',
+          titleColor: '#94a3b8', bodyColor: '#e2e8f0',
+          borderColor: 'rgba(255,255,255,0.07)', borderWidth: 1,
+          callbacks: { label: (c) => ` ${BRL(c.raw)}` }
+        }
+      },
+      scales: {
+        x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#475569', font: { size: 10 } } },
+        y: {
+          grid: { color: 'rgba(255,255,255,0.04)' },
+          ticks: { color: '#475569', font: { size: 10 }, callback: (v) => BIGN(v) }
+        }
+      }
+    }
+  });
+}
+
+// Range buttons
+document.querySelectorAll('.perf-range').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.perf-range').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderPerfChart(btn.dataset.range);
+  });
+});
+
+// ── Top positions table ────────────────────────────────────────
+function renderTopPositions() {
+  const tbody = document.getElementById('top-positions-body');
+  if (!tbody || !SUMMARY) return;
+
+  const all = [...SUMMARY.acoes, ...SUMMARY.fiis]
+    .sort((a,b) => b.value - a.value).slice(0, 8);
+
+  tbody.innerHTML = all.map(p => `
+    <tr>
+      <td><span class="font-mono font-semibold text-brand">${p.ticker}</span></td>
+      <td class="right font-mono">${BRL(p.value)}</td>
+      <td class="right font-mono" style="color:${colorPct(p.pl)}">${PCT(p.pl)}</td>
+    </tr>`).join('');
+}
+
+// ── Sector list ────────────────────────────────────────────────
+function renderSectorList() {
+  const el = document.getElementById('sector-list');
+  if (!el || !SUMMARY) return;
+
+  const bySetor = {};
+  SUMMARY.acoes.forEach(a => {
+    if (!bySetor[a.sector]) bySetor[a.sector] = 0;
+    bySetor[a.sector] += a.value;
+  });
+  SUMMARY.fiis.forEach(f => {
+    if (!bySetor['FIIs']) bySetor['FIIs'] = 0;
+    bySetor['FIIs'] += f.value;
+  });
+
+  const total = Object.values(bySetor).reduce((s,v) => s+v, 0);
+  const sorted = Object.entries(bySetor).sort((a,b) => b[1]-a[1]).slice(0, 7);
+
+  el.innerHTML = sorted.map(([sector, val]) => {
+    const pct = (val / total * 100).toFixed(1);
+    const color = SECTOR_COLORS[sector] || '#4f7ef8';
+    return `
+      <div>
+        <div class="flex items-center justify-between" style="margin-bottom:4px">
+          <span class="text-xs text-secondary">${sector}</span>
+          <span class="text-xs font-mono font-semibold text-primary">${pct}%</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width:${pct}%;background:${color}"></div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ── Carteira tables ────────────────────────────────────────────
+function renderCarteira() {
+  renderAcoesTable();
+  renderFIIsTable();
+  renderRendaFixaTable();
+}
+
+function renderAcoesTable() {
+  const tbody = document.getElementById('acoes-tbody');
+  if (!tbody || !SUMMARY) return;
+
+  setText('acoes-sub', `${SUMMARY.acoes.length} ativos`);
+  const total = SUMMARY.totals.acoes;
+  const invested = SUMMARY.acoes.reduce((s,a)=>s+a.invested,0);
+  const pl = invested > 0 ? (total-invested)/invested*100 : 0;
+  const badge = document.getElementById('acoes-total-badge');
+  if (badge) { badge.textContent = `${BRL(total)} · ${PCT(pl)}`; badge.className = `kpi-badge ${pl>=0?'badge-green':'badge-red'}`; }
+
+  tbody.innerHTML = SUMMARY.acoes.map(a => {
+    const plAbs = (a.currentPrice - a.avgPrice) * a.qty;
+    return `
+    <tr>
+      <td><span class="ticker-chip">${a.ticker}</span></td>
+      <td class="text-secondary">${a.name}</td>
+      <td class="right font-mono">${NUM(a.qty)}</td>
+      <td class="right font-mono">${BRL(a.avgPrice)}</td>
+      <td class="right font-mono font-semibold text-primary">${BRL(a.currentPrice)}</td>
+      <td class="right font-mono">${BRL(a.value)}</td>
+      <td class="right font-mono" style="color:${colorPct(plAbs)}">${plAbs>=0?'+':''}${BRL(plAbs)}</td>
+      <td class="right font-mono font-semibold" style="color:${colorPct(a.pl)}"><span class="badge ${badgeClass(a.pl)}">${PCT(a.pl)}</span></td>
+      <td><span class="badge badge-gray">${a.sector}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function renderFIIsTable() {
+  const tbody = document.getElementById('fiis-tbody');
+  if (!tbody || !SUMMARY) return;
+
+  setText('fiis-sub', `${SUMMARY.fiis.length} fundos`);
+  const total = SUMMARY.totals.fiis;
+  const invested = SUMMARY.fiis.reduce((s,f)=>s+f.invested,0);
+  const pl = invested > 0 ? (total-invested)/invested*100 : 0;
+  const badge = document.getElementById('fiis-total-badge');
+  if (badge) { badge.textContent = `${BRL(total)} · ${PCT(pl)}`; badge.className = `kpi-badge ${pl>=0?'badge-green':'badge-red'}`; }
+
+  tbody.innerHTML = SUMMARY.fiis.map(f => {
+    const plAbs = (f.currentPrice - f.avgPrice) * f.qty;
+    return `
+    <tr>
+      <td><span class="ticker-chip">${f.ticker}</span></td>
+      <td class="text-secondary">${f.name}</td>
+      <td class="right font-mono">${NUM(f.qty)}</td>
+      <td class="right font-mono">${BRL(f.avgPrice)}</td>
+      <td class="right font-mono font-semibold text-primary">${BRL(f.currentPrice)}</td>
+      <td class="right font-mono">${BRL(f.value)}</td>
+      <td class="right font-mono" style="color:${colorPct(plAbs)}">${plAbs>=0?'+':''}${BRL(plAbs)}</td>
+      <td class="right font-mono font-semibold" style="color:${colorPct(f.pl)}"><span class="badge ${badgeClass(f.pl)}">${PCT(f.pl)}</span></td>
+      <td><span class="badge badge-purple">${f.segment}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function renderRendaFixaTable() {
+  const tbody = document.getElementById('rf-tbody');
+  if (!tbody) return;
+
+  const total = RENDA_FIXA.reduce((s,r)=>s+r.value,0);
+  const invested = RENDA_FIXA.reduce((s,r)=>s+r.invested,0);
+  const pl = invested > 0 ? (total-invested)/invested*100 : 0;
+
+  setText('rf-sub', `${RENDA_FIXA.length} títulos`);
+  const badge = document.getElementById('rf-total-badge');
+  if (badge) { badge.textContent = `${BRL(total)} · ${PCT(pl)}`; badge.className = `kpi-badge badge-green`; }
+
+  const typeColor = { 'Tesouro Direto':'badge-blue','CDB':'badge-yellow','LCA':'badge-green','LCI':'badge-green','Debênture':'badge-purple','CRI':'badge-cyan','CRA':'badge-cyan' };
+
+  tbody.innerHTML = RENDA_FIXA.map(r => {
+    const rend = r.value - r.invested;
+    const rendPct = (rend / r.invested * 100);
+    return `
+    <tr>
+      <td class="font-semibold text-primary">${r.name}</td>
+      <td class="text-secondary">${r.issuer}</td>
+      <td><span class="badge ${typeColor[r.type]||'badge-gray'}">${r.type}</span></td>
+      <td class="font-mono text-secondary">${r.indexer}</td>
+      <td class="right font-mono">${r.indexer.includes('%') || r.indexer==='CDI'||r.indexer==='SELIC' ? r.rate+'%' : '+'+r.rate+'%'}</td>
+      <td class="right font-mono">${BRL(r.invested)}</td>
+      <td class="right font-mono font-semibold text-primary">${BRL(r.value)}</td>
+      <td class="right font-mono" style="color:var(--color-green)">+${BRL(rend)} (${rendPct.toFixed(2)}%)</td>
+      <td class="font-mono text-secondary">${DATE(r.maturity)}</td>
+    </tr>`;
+  }).join('');
+}
+
+// Carteira summary charts
+function renderCarteiraSummaryCharts() {
+  if (!SUMMARY) return;
+  const t = SUMMARY.totals;
+
+  // KPI
+  const el = document.getElementById('cart-kpi-grid');
+  if (el) {
+    const rfInv = RENDA_FIXA.reduce((s,r)=>s+r.invested,0);
+    const rfPL  = (t.rendaFixa-rfInv)/rfInv*100;
+    el.innerHTML = `
+      <div class="kpi-card">
+        <div class="kpi-label">Total da Carteira</div>
+        <div class="kpi-value">${BRL(t.total)}</div>
+        <div class="kpi-sub"><span class="kpi-badge ${t.plPct>=0?'up':'down'}">${PCT(t.plPct)}</span></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Ações</div>
+        <div class="kpi-value">${BRL(t.acoes)}</div>
+        <div class="kpi-sub text-xs text-muted">${SUMMARY.acoes.length} ativos · ${(t.acoes/t.total*100).toFixed(1)}%</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">FIIs</div>
+        <div class="kpi-value">${BRL(t.fiis)}</div>
+        <div class="kpi-sub text-xs text-muted">${SUMMARY.fiis.length} fundos · ${(t.fiis/t.total*100).toFixed(1)}%</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Renda Fixa</div>
+        <div class="kpi-value">${BRL(t.rendaFixa)}</div>
+        <div class="kpi-sub"><span class="kpi-badge up">${PCT(rfPL)}</span></div>
+      </div>`;
+  }
+
+  // Classes chart (doughnut)
+  const ctx1 = document.getElementById('chart-classes');
+  if (ctx1) {
+    if (CHARTS.classes) CHARTS.classes.destroy();
+    CHARTS.classes = new Chart(ctx1, {
+      type: 'doughnut',
+      data: {
+        labels: ['Ações','FIIs','Renda Fixa','Crypto'],
+        datasets: [{ data: [t.acoes,t.fiis,t.rendaFixa,t.crypto], backgroundColor:['#4f7ef8','#a855f7','#22c55e','#f59e0b'], borderWidth:0 }]
+      },
+      options: { cutout:'68%', responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'right', labels:{ color:'#94a3b8', font:{size:11} } } } }
+    });
+  }
+
+  // Cart dist (bar chart - sector allocation)
+  const ctx2 = document.getElementById('chart-cart-dist');
+  if (ctx2) {
+    if (CHARTS.cartDist) CHARTS.cartDist.destroy();
+    const bySetor = {};
+    SUMMARY.acoes.forEach(a => { bySetor[a.sector] = (bySetor[a.sector]||0) + a.value; });
+    SUMMARY.fiis.forEach(f  => { bySetor['FIIs']    = (bySetor['FIIs']||0)   + f.value; });
+    bySetor['Renda Fixa'] = t.rendaFixa;
+    const sorted = Object.entries(bySetor).sort((a,b)=>b[1]-a[1]);
+    CHARTS.cartDist = new Chart(ctx2, {
+      type: 'bar',
+      data: {
+        labels: sorted.map(([k])=>k),
+        datasets: [{ data: sorted.map(([,v])=>v), backgroundColor: sorted.map(([k])=>SECTOR_COLORS[k]||'#4f7ef8'), borderRadius:4, borderWidth:0 }]
+      },
+      options: {
+        indexAxis:'y', responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:(c)=>` ${BRL(c.raw)}` } } },
+        scales:{ x:{ grid:{color:'rgba(255,255,255,0.04)'}, ticks:{color:'#475569',callback:(v)=>BIGN(v)} }, y:{ grid:{display:false}, ticks:{color:'#94a3b8',font:{size:11}} } }
+      }
+    });
+  }
+}
+
+// ── Mercado page ───────────────────────────────────────────────
+let mercadoLoaded = false;
+async function renderMercado() {
+  if (mercadoLoaded) return;
+  mercadoLoaded = true;
+
+  const watchlist = [
+    'PETR4','VALE3','ITUB4','BBDC4','WEGE3','RENT3','B3SA3','ABEV3',
+    'SUZB3','VIVT3','RDOR3','MGLU3','LREN3','EGIE3','TAEE11','PRIO3',
+    'CSAN3','SBSP3','TOTS3','MXRF11','HGLG11','KNRI11','XPML11','VISC11',
+  ];
+
+  const tbody = document.getElementById('market-tbody');
+  const countEl = document.getElementById('market-count');
+
+  try {
+    const quotes = await fetchQuotes(watchlist);
+    if (countEl) countEl.textContent = `${quotes.length} ativos monitorados`;
+
+    // IBOV data (if available in quotes for ^BVSP)
+    const ibovQ = quotes.find(q => q.symbol === '^BVSP');
+    if (ibovQ) {
+      setText('ibov-val', NUM(ibovQ.regularMarketPrice));
+      setText('ibov-vol', BIGN(ibovQ.regularMarketVolume));
+      setText('ibov-52w', `${NUM(ibovQ.fiftyTwoWeekHigh)} / ${NUM(ibovQ.fiftyTwoWeekLow)}`);
+      setText('market-time', new Date(ibovQ.regularMarketTime*1000).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}));
+      const badge = document.getElementById('ibov-badge');
+      if (badge) { badge.textContent = PCT(ibovQ.regularMarketChangePercent); badge.className=`kpi-badge ${ibovQ.regularMarketChangePercent>=0?'up':'down'}`; }
+    } else {
+      setText('ibov-val', NUM(132450));
+      setText('market-time', new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}));
+    }
+
+    // Filter
+    const filterInput = document.getElementById('market-filter');
+    let allQuotes = quotes.filter(q => q.symbol !== '^BVSP');
+
+    function renderMarketRows(list) {
+      if (!tbody) return;
+      tbody.innerHTML = list.length === 0
+        ? `<tr class="loading-row"><td colspan="9">Nenhum resultado</td></tr>`
+        : list.map(q => {
+          const chg = q.regularMarketChangePercent || 0;
+          return `
+          <tr>
+            <td><span class="font-mono font-semibold text-brand">${q.symbol}</span></td>
+            <td class="text-secondary truncate" style="max-width:160px">${q.longName || q.shortName || q.symbol}</td>
+            <td class="right font-mono font-semibold text-primary">${BRL(q.regularMarketPrice)}</td>
+            <td class="right font-mono font-semibold" style="color:${colorPct(chg)}">
+              <span class="badge ${badgeClass(chg)}">${PCT(chg)}</span>
+            </td>
+            <td class="right font-mono">${BRL(q.regularMarketOpen)}</td>
+            <td class="right font-mono">${BRL(q.regularMarketDayLow)}</td>
+            <td class="right font-mono">${BRL(q.regularMarketDayHigh)}</td>
+            <td class="right font-mono text-muted">${BIGN(q.regularMarketVolume)}</td>
+            <td class="right font-mono text-muted">${q.priceEarnings ? q.priceEarnings.toFixed(1) : '—'}</td>
+          </tr>`;
+        }).join('');
+    }
+
+    renderMarketRows(allQuotes);
+
+    if (filterInput) {
+      filterInput.addEventListener('input', () => {
+        const q = filterInput.value.toLowerCase();
+        renderMarketRows(allQuotes.filter(s => s.symbol.toLowerCase().includes(q) || (s.longName||'').toLowerCase().includes(q)));
+      });
+    }
+
+  } catch(e) {
+    if (tbody) tbody.innerHTML = `<tr class="loading-row"><td colspan="9"><div class="alert alert-warn">Erro ao carregar cotações: ${e.message}</div></td></tr>`;
+  }
+}
+
+// ── Câmbio page ────────────────────────────────────────────────
+let cambioLoaded = false;
+async function renderCambio() {
+  if (cambioLoaded) return;
+  cambioLoaded = true;
+
+  const PAIRS = [
+    { code: 'USD-BRL', key: 'USDBRL', flag: '🇺🇸', name: 'Dólar Americano',  from: 'USD', to: 'BRL' },
+    { code: 'EUR-BRL', key: 'EURBRL', flag: '🇪🇺', name: 'Euro',             from: 'EUR', to: 'BRL' },
+    { code: 'GBP-BRL', key: 'GBPBRL', flag: '🇬🇧', name: 'Libra Esterlina',  from: 'GBP', to: 'BRL' },
+    { code: 'ARS-BRL', key: 'ARSBRL', flag: '🇦🇷', name: 'Peso Argentino',   from: 'ARS', to: 'BRL' },
+    { code: 'JPY-BRL', key: 'JPYBRL', flag: '🇯🇵', name: 'Iene Japonês',     from: 'JPY', to: 'BRL' },
+    { code: 'BTC-BRL', key: 'BTCBRL', flag: '₿',   name: 'Bitcoin',          from: 'BTC', to: 'BRL' },
+  ];
+
+  const grid = document.getElementById('pair-grid');
+
+  try {
+    const [fx, hist] = await Promise.all([
+      fetchExchangeRates(PAIRS.map(p=>p.code)),
+      fetchExchangeHistory('USD-BRL', 30).catch(()=>[]),
+    ]);
+
+    if (grid) {
+      grid.innerHTML = PAIRS.map(p => {
+        const d = fx[p.key];
+        if (!d) return `<div class="pair-card"><div class="text-muted text-sm">${p.code} — indisponível</div></div>`;
+        const rate = parseFloat(d.bid);
+        const chg  = parseFloat(d.pctChange);
+        const chgAbs = parseFloat(d.varBid);
+        return `
+        <div class="pair-card">
+          <div class="flex items-center justify-between" style="margin-bottom:var(--space-2)">
+            <div class="flex items-center gap-2">
+              <span style="font-size:1.4rem">${p.flag}</span>
+              <div><div class="pair-name">${p.from}/BRL</div><div class="pair-code">${p.name}</div></div>
+            </div>
+            <span class="badge ${chg>=0?'badge-green':'badge-red'}">${PCT(chg)}</span>
+          </div>
+          <div class="pair-rate">R$ ${p.from==='JPY'?rate.toFixed(4):rate.toFixed(2)}</div>
+          <div class="pair-meta">
+            <span class="text-xs text-muted">Var: ${chgAbs>=0?'+':''}${chgAbs.toFixed(p.from==='JPY'?4:4)}</span>
+            <span class="text-xs text-muted">Atualizado: ${d.create_date?.slice(11,16)||'—'}</span>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    // USD/BRL history chart
+    const ctx = document.getElementById('chart-cambio');
+    if (ctx && hist.length > 0) {
+      if (CHARTS.cambio) CHARTS.cambio.destroy();
+      const labels = hist.slice().reverse().map(h => {
+        const d = new Date(h.timestamp*1000);
+        return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
+      });
+      const values = hist.slice().reverse().map(h => parseFloat(h.bid));
+      const grad = ctx.getContext('2d').createLinearGradient(0,0,0,200);
+      grad.addColorStop(0,'rgba(34,197,94,0.25)');
+      grad.addColorStop(1,'rgba(34,197,94,0)');
+      CHARTS.cambio = new Chart(ctx, {
+        type:'line',
+        data:{ labels, datasets:[{ data:values, borderColor:'#22c55e', backgroundColor:grad, borderWidth:2, fill:true, tension:0.3, pointRadius:0 }] },
+        options:{
+          responsive:true, maintainAspectRatio:false,
+          plugins:{ legend:{display:false} },
+          scales:{
+            x:{ ticks:{color:'#475569',font:{size:10},maxTicksLimit:10}, grid:{color:'rgba(255,255,255,0.04)'} },
+            y:{ ticks:{color:'#475569',callback:(v)=>`R$ ${v.toFixed(2)}`}, grid:{color:'rgba(255,255,255,0.04)'} }
+          }
+        }
+      });
+    }
+
+  } catch(e) {
+    if (grid) grid.innerHTML = `<div class="alert alert-warn" style="grid-column:1/-1">Erro ao carregar câmbio: ${e.message}</div>`;
+  }
+}
+
+// ── Indicadores page ───────────────────────────────────────────
+let indLoaded = false;
+async function renderIndicadores() {
+  if (indLoaded) return;
+  indLoaded = true;
+
+  const INDS = [
+    { id:'selic', name:'SELIC',    icon:'🏛️', color:'#4f7ef8', bg:'var(--color-blue-dim)',   unit:'% a.a.', desc:'Meta do Copom',          fetch: ()=>fetchSELIC(1) },
+    { id:'cdi',   name:'CDI',      icon:'📊', color:'#22c55e', bg:'var(--color-green-dim)',  unit:'% a.m.', desc:'Taxa interbancária',       fetch: ()=>fetchCDI(1) },
+    { id:'ipca',  name:'IPCA',     icon:'📈', color:'#f59e0b', bg:'var(--color-yellow-dim)', unit:'% a.m.', desc:'Índice de inflação oficial',fetch: ()=>fetchIPCA(1) },
+    { id:'igpm',  name:'IGP-M',    icon:'🏘️', color:'#a855f7', bg:'var(--color-purple-dim)', unit:'% a.m.', desc:'Inflação do aluguel',      fetch: ()=>fetchIGPM(1) },
+    { id:'inpc',  name:'INPC',     icon:'🛒', color:'#ec4899', bg:'rgba(236,72,153,0.12)',   unit:'% a.m.', desc:'Inflação das famílias',    fetch: ()=>fetchINPC(1) },
+    { id:'poupc', name:'Poupança', icon:'💰', color:'#06b6d4', bg:'var(--color-cyan-dim)',   unit:'% a.m.', desc:'Rendimento da poupança',   fetch: ()=>fetchPoupanca(1) },
+  ];
+
+  const grid = document.getElementById('ind-grid');
+
+  // Render placeholders first
+  if (grid) {
+    grid.innerHTML = INDS.map(ind => `
+      <div class="ind-card" id="ind-${ind.id}">
+        <div class="flex items-center gap-3">
+          <div class="ind-icon" style="background:${ind.bg}">${ind.icon}</div>
+          <div><div class="ind-name">${ind.name}</div><div class="text-xs text-muted">${ind.desc}</div></div>
+        </div>
+        <div class="ind-value" style="color:${ind.color}" id="ind-val-${ind.id}"><div class="skeleton" style="height:28px;width:100px"></div></div>
+        <div class="ind-period text-xs text-muted" id="ind-date-${ind.id}">Carregando…</div>
+      </div>`).join('');
+  }
+
+  // Fetch all in parallel
+  const results = await Promise.allSettled(INDS.map(i => i.fetch()));
+  results.forEach((r, idx) => {
+    const ind = INDS[idx];
+    const valEl = document.getElementById(`ind-val-${ind.id}`);
+    const dateEl = document.getElementById(`ind-date-${ind.id}`);
+    if (r.status === 'fulfilled' && r.value?.[0]) {
+      const d = r.value[0];
+      if (valEl) valEl.textContent = `${parseFloat(d.valor).toFixed(ind.id==='selic'?2:2)}${ind.unit}`;
+      if (dateEl) dateEl.textContent = `Referência: ${d.data}`;
+      IND_SERIES_DATA[ind.id] = r.value;
+    } else {
+      if (valEl) valEl.textContent = '—';
+      if (dateEl) dateEl.textContent = 'Indisponível';
+    }
+  });
+
+  // Render chart with default series
+  await loadIndChart('ipca');
+}
+
+async function loadIndChart(series) {
+  const COLORS = { selic:'#4f7ef8', cdi:'#22c55e', ipca:'#f59e0b', igpm:'#a855f7' };
+  const NAMES  = { selic:'SELIC (%)', cdi:'CDI (%)', ipca:'IPCA (%)', igpm:'IGP-M (%)' };
+  const FETCHERS = {
+    selic: ()=>fetchSELIC(12), cdi:()=>fetchCDI(12),
+    ipca:()=>fetchIPCA(12), igpm:()=>fetchIGPM(12),
+  };
+
+  let data = IND_SERIES_DATA[series+'_12'];
+  if (!data) {
+    try { data = await FETCHERS[series](); IND_SERIES_DATA[series+'_12'] = data; }
+    catch(e) { return; }
+  }
+  if (!data || data.length === 0) return;
+
+  const ctx = document.getElementById('chart-indicadores');
+  if (!ctx) return;
+  if (CHARTS.ind) CHARTS.ind.destroy();
+
+  const grad = ctx.getContext('2d').createLinearGradient(0,0,0,220);
+  grad.addColorStop(0, hexToRGBA(COLORS[series]||'#4f7ef8',0.3));
+  grad.addColorStop(1, hexToRGBA(COLORS[series]||'#4f7ef8',0.0));
+
+  CHARTS.ind = new Chart(ctx, {
+    type:'line',
+    data:{
+      labels: data.map(d=>d.data),
+      datasets:[{
+        label: NAMES[series]||series,
+        data: data.map(d=>parseFloat(d.valor)),
+        borderColor: COLORS[series]||'#4f7ef8',
+        backgroundColor: grad,
+        borderWidth:2, fill:true, tension:0.3, pointRadius:4,
+        pointBackgroundColor: COLORS[series]||'#4f7ef8',
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false} },
+      scales:{
+        x:{ ticks:{color:'#475569',font:{size:10}}, grid:{color:'rgba(255,255,255,0.04)'} },
+        y:{ ticks:{color:'#475569',callback:(v)=>`${v.toFixed(2)}%`}, grid:{color:'rgba(255,255,255,0.04)'} }
+      }
+    }
+  });
+}
+
+document.querySelectorAll('.ind-series').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.ind-series').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    loadIndChart(btn.dataset.series);
+  });
+});
+
+// ── Helpers ────────────────────────────────────────────────────
+function hexToRGBA(hex, alpha) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+// ── Global refresh ─────────────────────────────────────────────
+window.refreshAll = async function() {
+  QUOTES = {}; SUMMARY = null;
+  mercadoLoaded = false; cambioLoaded = false; indLoaded = false;
+  await loadAllData();
+  const active = document.querySelector('.page.active')?.id?.replace('page-','');
+  if (active === 'mercado')    { mercadoLoaded=false; renderMercado(); }
+  if (active === 'cambio')     { cambioLoaded=false;  renderCambio(); }
+  if (active === 'indicadores'){ indLoaded=false;     renderIndicadores(); }
+};
+
+// ── Init ───────────────────────────────────────────────────────
+Chart.defaults.color = '#94a3b8';
+Chart.defaults.font.family = "'Inter', sans-serif";
+Chart.defaults.font.size = 11;
+
+loadAllData();
+
+// Auto-refresh every 5 minutes
+setInterval(() => {
+  QUOTES = {}; SUMMARY = null;
+  loadAllData();
+}, 5 * 60 * 1000);
+</script>
+</body>
+</html>
